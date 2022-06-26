@@ -28,7 +28,7 @@
 
 1. Ensure that the operating PC has GPU. Microsoft Visual Studio and its C++ build tools must be installed. Also, NVIDIA CUDA must be system-installed (*not just in the Anaconda environment, eg. conda install cudatoolkit=10.2 -c pytorch*). This is because some parts of InPlace-ABN (*a novel batch normalization approach which is used in the selected neural network model*) have native C++/CUDA implementations.
 
-2. Create a conda environment with Python 3.7.x (should be fine as long as PyTorch can be properly installed).
+2. Create a conda environment with Python 3.7.x (*should be fine as long as PyTorch can be properly installed*).
 
 ```conda create -n flixstock python=3.7```
 
@@ -61,7 +61,7 @@ Flixstock Assignment/
     ...
 ```
 
-6. Download the dataset and annotations [here](https://drive.google.com/drive/folders/1xJkBz5i_oBbOET0FqQq1IBeH8RePGXHc?usp=sharing) and place it into Datasets/FlixstockTask/. Extract the 'images_cleaned.zip' and ensure that the final directory looks like
+6. Download the dataset and annotations [here](https://drive.google.com/drive/folders/1xJkBz5i_oBbOET0FqQq1IBeH8RePGXHc?usp=sharing) and place it into 'Datasets/FlixstockTask'. Extract the 'images_cleaned.zip' and ensure that the final directory looks like
 
 ```
 Flixstock Assignment/
@@ -84,7 +84,7 @@ Flixstock Assignment/
     ...
 ```
 
-7. Download the Flixstock pretrained weights [here]() and place it in the './pretrained_weights' folder.
+7. Download the Flixstock pretrained weights [here](https://drive.google.com/drive/folders/13tLaXn8SyP-jjQIg6VKOsadYaL3wdFAi?usp=sharing) and place it in the './pretrained_weights' folder.
 
 ```
 Flixstock Assignment/
@@ -118,7 +118,7 @@ Flixstock Assignment/
 
 Note: Code is commented.
 
-1. Navigate to '../Datasets/FlixstockTask'
+1. Navigate to 'Datasets/FlixstockTask'
 2. ```python images_train_test_valid_split.py```
 
 **Training**

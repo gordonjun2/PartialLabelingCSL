@@ -18,19 +18,19 @@ pd.set_option('display.max_columns', None)
 # Refer to https://github.com/jfilter/split-folders on how the folders should be set up (If the images are not separated by classes, then just simply 
 # put them into another folder. Eg. ./image_original/image/<images here>)
 
-splitfolders.ratio('./images_cleaned', output="./images_split", seed=1337, ratio=(0.8, 0.1,0.1))
+splitfolders.ratio('./images_cleaned', output="./images_split", seed=1337, ratio=(0.8, 0.1,0.1))        # Split the dataset into train-val-test
 
 # Retrieve all available training images as a list
-train_images_list = os.listdir('./images_split/train/images/')
+train_images_list = os.listdir('./images_split/train/images/')                              # Get training images as list first
 
 # Create training dataframe
-df = pd.read_csv('attributes_cleaned.csv')
+df = pd.read_csv('attributes_cleaned.csv')                                                  
 
 print('Original training dataframe.\n')
 print(df)
 
 # Remove all non-training and missing images
-df = df[df['filename'].isin(train_images_list)].reset_index(drop=True)
+df = df[df['filename'].isin(train_images_list)].reset_index(drop=True)                      # Cleans up the df according to what is actually available in training image folder
 
 print('Dataframe with non-training and missing data removed.\n')
 print(df)
@@ -45,8 +45,11 @@ print(df['pattern'].value_counts(dropna=False).sort_index())
 
 # Data augmentation
 
-# The idea is to sum the weighting for each data. E.g. data 1 has Neck 4, Sleeve Length 2, and Pattern N/A, so the total sum is 7.37272727 + 9.44827586 + 0 = 16.82100313
-# Data augmentation multiplier has 3 category: If sum >= 20, x30 per image. If sum < 20 and sum >= 15, x20 per image. If sum >= 5, x10 per image. Else, no augmentation for that image.
+# The idea is to sum the weighting for each data. E.g. data 1 has Neck 4, Sleeve Length 2, and Pattern N/A, so the total sum is 
+# 7.37272727 + 9.44827586 + 0 = 16.82100313. Data augmentation multiplier has 3 category: If sum >= 20 and no more than 2 common classes 
+# are present in the other attributes, x40 per image. If sum < 20 and sum >= 15 and no more than 2 common classes are present in the 
+# other attributes, x30 per image. If sum >= 5 and no more than 2 common classes are present in the other attributes, x20 per image. 
+# Else, no augmentation for that image.
 
 neck_count_list = []
 sleeve_len_count_list = []
@@ -73,7 +76,7 @@ neck_count_array = np.array(neck_count_list)
 sleeve_len_count_array = np.array(sleeve_len_count_list)
 pattern_count_array = np.array(pattern_count_list)
 
-# Undersample common data
+# Undersample common data (HAVENT TEST)
 
 # for pattern_type, aug_multiplier in zip(pattern_type_list, aug_multiplier_list):
 #     if aug_multiplier == 0:
@@ -115,7 +118,7 @@ for row_count in range(df.shape[0]):
 
     # Read an image with OpenCV
     image = cv2.imread('./images_split/train/images/' + df['filename'][row_count])
-    cv2.imwrite('./images_augmented/train/images/' + df['filename'][row_count], image)
+    cv2.imwrite('./images_augmented/train/images/' + df['filename'][row_count], image)              
 
     try:
         neck_index = int(df['neck'][row_count])
@@ -235,13 +238,13 @@ print(sleeve_len_df)
 print('\nChange of distribution of Pattern type:')
 print(pattern_df)
 
-df.to_csv('attributes_train.csv', index=False, na_rep='#N/A')
+df.to_csv('attributes_train.csv', index=False, na_rep='#N/A')                       # Save final training annotation file
 
 # Create validation dataframe
-df = pd.read_csv('attributes_cleaned.csv')
+df = pd.read_csv('attributes_cleaned.csv')                                         
 
 # Retrieve all available training images as a list
-val_images_list = os.listdir('./images_split/val/images/')
+val_images_list = os.listdir('./images_split/val/images/')                           # Cleans up the df according to what is actually available in validation image folder
 
 # Remove all non-training and missing images
 df = df[df['filename'].isin(val_images_list)].reset_index(drop=True)
@@ -257,7 +260,7 @@ print(df['sleeve_length'].value_counts(dropna=False).sort_index())
 print('\nValidation distribution of Pattern type:')
 print(df['pattern'].value_counts(dropna=False).sort_index())
 
-df.to_csv('attributes_val.csv', index=False, na_rep='#N/A')
+df.to_csv('attributes_val.csv', index=False, na_rep='#N/A')                         # Save final validation annotation file
 
 
 
