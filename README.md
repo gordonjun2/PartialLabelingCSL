@@ -116,7 +116,7 @@ Flixstock Assignment/
 
 **Data Preparation**
 
-Note: Code is commented.
+Note: This must be ran before performing training, validation, and inference. Code is commented.
 
 1. Navigate to 'Datasets/FlixstockTask'
 2. ```python images_train_test_valid_split.py```
@@ -141,6 +141,12 @@ Note: When args.all_val_inference is True, the model will infer will validation 
 
 1. Navigate to '../PartialLabelingCSL'
 2. ```python infer.py --all_val_inference```
+
+**Future Direction**
+
+- Perform parameter fine-tuning to optimize validation score
+- Explore other novel multi-label classification approach (eg. graph networks) with consideration of methods that can assist in training heavily partial annotated dataset
+
 
 ***
 
