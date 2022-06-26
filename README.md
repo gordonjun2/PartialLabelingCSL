@@ -114,21 +114,33 @@ Flixstock Assignment/
 
 ### Usage
 
-- Navigate to './PartialLabelingCSL' first.
+**Data Preparation**
+
+Note: Code is commented.
+
+1. Navigate to '../Datasets/FlixstockTask'
+2. ```python images_train_test_valid_split.py```
 
 **Training**
 
-- ```python train.py```
+Note: The training was performed lightly, without parameter tuning. Default parameters from the original code was used, with the required change to use Flixstock images on the model.
+
+1. Navigate to '../PartialLabelingCSL'
+2. ```python train.py```
 
 **Validation**
 
-- ```python validate.py```
+1. Navigate to '../PartialLabelingCSL'
+2. ```python validate.py```
+
+Current mAP score: 41.47331810982931 (no parameter tuning done)
 
 **Inference**
 
 Note: When args.all_val_inference is True, the model will infer will validation and output the prediction to './results/attributes_val_inference.csv'. If not, single image inference is also possible (*set image path in 'infer.py'*).
 
-- ```python infer.py --all_val_inference```
+1. Navigate to '../PartialLabelingCSL'
+2. ```python infer.py --all_val_inference```
 
 ***
 
