@@ -1,3 +1,137 @@
+***
+
+# Multi-label Deep Learning Assignment
+
+### Problem Statement: Predicting Deep Fashion Attributes
+
+(see problem description in the given .pdf)
+
+**Important Considerations and Planned Approach**
+
+- Each garment has 3 attributes (*neck type, sleeve length, and pattern*).
+- Each attribute has their own classes (*neck attribute has 0-6 classes, sleeve length attribute has 0-3 classes, and pattern attribute has 0-9 classes*).
+- Thus, the total number of classes is 7 + 4 + 10 = 21.
+- This is a **multi-label** problem, and the neural network should output the 3 predicted attributes, which consist of a total of 21 classes, given the image.
+- Only a **single neural network** should be used (*so the neural network should learn to extract the features of all the 3 attributes by itself, eg. only 1 backbone is to be used*). 
+- There are **plenty of missing/unknown labels** which are labelled as '#N/A' (*see the given .csv*).
+- To achieve best usage of existing data with minimum bias, data which has '#N/A' as its attribute should not be discarded.
+- Upon checking the distribution of the dataset (*see 'Usage' instruction below*), it can be seen that there are **high class imbalance** (*eg. no. neck 6, sleeve length 3, and pattern 9 are much higher than their attribute's counterpart*).
+- In addition, **uncommon classes of an attribute are usually paired with common classes of another attribute** (*eg. neck 6 with sleeve length 3 with pattern 0*).
+- When data augmentation is performed on data with uncommon classes of an attribute, the number of common classes of another attribute paired with it increases too.
+- **Some incorrect images are manually removed** from the given .zip so that they are not further augmented.
+- **To improve the class balance, a proposed data augmentation algorithm (*see 'Usage' instruction below*) is implemented.** This results in a slight improvement in the class balancing (*see './pics/cod_neck.PNG', './pics/cod_sleeve_length.PNG', and './pics/cod_pattern.PNG'*).
+- Although the data augmentation helps to better balance the classes while increasing training data, **it increases the occurence of '#N/A' labels**.
+- As a result, this is a **multi-label with partial labelling** problem.
+- A [neural network](https://github.com/Alibaba-MIIL/PartialLabelingCSL) is selected and adapted for this problem.
+
+### Installation
+
+1. Ensure that the operating PC has GPU. Microsoft Visual Studio and its C++ build tools must be installed. Also, NVIDIA CUDA must be system-installed (*not just in the Anaconda environment, eg. conda install cudatoolkit=10.2 -c pytorch*). This is because some parts of InPlace-ABN (*a novel batch normalization approach which is used in the selected neural network model*) have native C++/CUDA implementations.
+
+2. Create a conda environment with Python 3.7.x (should be fine as long as PyTorch can be properly installed).
+
+```conda create -n flixstock python=3.7```
+
+3. Install PyTorch using conda.
+
+```conda install pytorch==1.7.0 torchvision==0.8.0 torchaudio==0.7.0 cudatoolkit=10.2 -c pytorch```
+
+4. Install other dependencies (*might have more required dependencies but just install them on the fly when the model is run later*).
+
+```
+cd PartialLabelingCSL
+pip install -r requirements.txt
+```
+
+5. Move the 'Datasets' folder out of the main 'PartialLabelingCSL'. This is to ensure that the path variables in the code are correct (*I always put my datasets outside the repository so that they can be shared across other repositories without confusion.*). In summary, 
+
+```
+Flixstock Assignment/
+    Datasets/
+        FlixstockTask/
+            ...
+    PartialLabelingCSL/
+        data/
+            ...
+        outputs/
+            ...
+        ...
+    <other repository>/
+        ...
+    ...
+```
+
+6. Download the dataset and annotations [here](https://drive.google.com/drive/folders/1xJkBz5i_oBbOET0FqQq1IBeH8RePGXHc?usp=sharing) and place it into Datasets/FlixstockTask/. Extract the 'images_cleaned.zip' and ensure that the final directory looks like
+
+```
+Flixstock Assignment/
+    Datasets/
+        FlixstockTask/
+            images_cleaned/
+                images/
+                    <cloth 1.jpg>
+                    ...
+            attributes_cleaned.csv
+            images_train_test_valid_split.py
+    PartialLabelingCSL/
+        data/
+            ...
+        outputs/
+            ...
+        ...
+    <other repository>/
+        ...
+    ...
+```
+
+7. Download the Flixstock pretrained weights [here]() and place it in the './pretrained_weights' folder.
+
+```
+Flixstock Assignment/
+    Datasets/
+        FlixstockTask/
+            images_cleaned/
+                images/
+                    <cloth 1.jpg>
+                    ...
+            attributes_cleaned.csv
+            images_train_test_valid_split.py
+    PartialLabelingCSL/
+        data/
+            ...
+        outputs/
+            ...
+        pretrained_weights/
+            <weight.ckpt>
+            ...
+        ...
+    <other repository>/
+        ...
+    ...
+```
+
+8. Done with installation!
+
+### Usage
+
+- Navigate to './PartialLabelingCSL' first.
+
+**Training**
+
+- ```python train.py```
+
+**Validation**
+
+- ```python validate.py```
+
+**Inference**
+
+Note: When args.all_val_inference is True, the model will infer will validation and output the prediction to './results/attributes_val_inference.csv'. If not, single image inference is also possible (*set image path in 'infer.py'*).
+
+- ```python infer.py --all_val_inference```
+
+***
+
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/multi-label-classification-with-partial/multi-label-classification-on-openimages-v6)](https://paperswithcode.com/sota/multi-label-classification-on-openimages-v6?p=multi-label-classification-with-partial)
 
 # Multi-label Classification with Partial Annotations using Class-aware Selective Loss

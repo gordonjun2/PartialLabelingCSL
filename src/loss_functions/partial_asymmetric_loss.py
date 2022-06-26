@@ -70,6 +70,9 @@ class PartialSelectiveLoss(nn.Module):
 
 def edit_targets_parital_labels(args, targets, targets_weights, xs_neg, prior_classes=None):
     # targets_weights is and internal state of AsymmetricLoss class. we don't want to re-allocate it every batch
+
+    print('partial loss mode selected: ', args.partial_loss_mode)
+
     if args.partial_loss_mode is None:
         targets_weights = 1.0
 
@@ -137,7 +140,7 @@ class ComputePrior:
         self.cnt_samples_train,  self.cnt_samples_val = .0, .0
         self.avg_pred_train, self.avg_pred_val = None, None
         self.path_dest = "./outputs"
-        self.path_local = "/class_prior/"
+        self.path_local = "./class_prior/"
 
     def update(self, logits, training=True):
         with torch.no_grad():

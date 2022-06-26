@@ -11,6 +11,8 @@ import torch
 from PIL import ImageDraw
 from pycocotools.coco import COCO
 
+import pandas as pd
+
 
 def parse_args(parser):
     # parsing args
@@ -223,6 +225,71 @@ class CocoDetection(datasets.coco.CocoDetection):
 
         if self.target_transform is not None:
             target = self.target_transform(target)
+        return img, target
+
+class Flixstock():
+    def __init__(self, root, annFile, transform=None, target_transform=None, spread_targets=True):
+
+        self.root = root
+        self.annFile = annFile
+        self.transform = transform
+        self.target_transform = target_transform
+
+        self.df = pd.read_csv(self.annFile)
+
+        self.spread_targets = spread_targets
+        if self.spread_targets:
+            self.targets_all = self.get_targets()
+
+    def __len__(self):
+        return len(self.df)
+
+    # To get the ground truth (targets_all is a dictionary with keys as the 
+    # image id and value as a 1D torch tensor of torch.Size([21]) that represents 
+    # the ground-truth)
+    def get_targets(self):
+
+        targets_all = {}
+
+        # TODO (open up dataframe from .csv and for loop through)
+    
+        for img_id in range(self.df.shape[0]):
+            target = torch.zeros((21), dtype=torch.long)
+            # target = torch.mul(target, -1)
+
+            try:
+                neck_type = int(self.df['neck'][img_id])
+                target[neck_type] = 1
+            except:
+                target[:7] = -1
+
+            try:
+                sleeve_length_type = int(self.df['sleeve_length'][img_id])
+                target[7 + sleeve_length_type] = 1
+            except:
+                target[7:11] = -1
+
+            try:
+                pattern_type = int(self.df['pattern'][img_id])
+                target[11 + pattern_type] = 1
+            except:
+                target[11:] = -1
+
+            targets_all[img_id] = target
+
+        return targets_all
+
+    def __getitem__(self, index):
+
+        target = self.targets_all[index]
+
+        path = self.df['filename'][index]
+        img = Image.open(os.path.join(self.root, path)).convert('RGB')
+        if self.transform is not None:
+            img = self.transform(img)
+
+        # if self.target_transform is not None:
+        #     target = self.target_transform(target)
         return img, target
 
 

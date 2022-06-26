@@ -10,25 +10,26 @@ import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import os
 
-from src.helper_functions.helper_functions import mAP, AverageMeter, CocoDetection
+from src.helper_functions.helper_functions import mAP, AverageMeter, CocoDetection, Flixstock
 from src.models import create_model
 import numpy as np
 
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
-parser.add_argument('data', metavar='DIR', help='path to dataset')
-parser.add_argument('--model-name', default='tresnet_l')
-parser.add_argument('--model-path', default='./TRresNet_L_448_86.6.pth', type=str)
-parser.add_argument('--num-classes', default=80)
+parser.add_argument('--data', metavar='DIR', help='path to dataset', default='../Datasets/FlixstockTask/')
+parser.add_argument('--model-name', default='tresnet_m')
+parser.add_argument('--model_path', type=str, default='./pretrained_weights/flixstock_ignore_best_model-5-1250.ckpt')       # default is './models/mtresnet_opim_86.72.pth'
+parser.add_argument('--num-classes', default=21)                                # 21 for flixstock
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
                     help='number of data loading workers (default: 16)')
-parser.add_argument('--image-size', default=448, type=int,
+parser.add_argument('--image-size', default=224, type=int,
                     metavar='N', help='input image size (default: 448)')
-parser.add_argument('--thre', default=0.8, type=float,
+parser.add_argument('--thre', default=0.7, type=float,
                     metavar='N', help='threshold value')
-parser.add_argument('-b', '--batch-size', default=32, type=int,
+parser.add_argument('-b', '--batch-size', default=8, type=int,
                     metavar='N', help='mini-batch size (default: 16)')
-parser.add_argument('--print-freq', '-p', default=64, type=int,
+parser.add_argument('--print_freq', '-p', default=100, type=int,
                     metavar='N', help='print frequency (default: 64)')
+parser.add_argument('--dataset_type', type=str, default='flixstock')      # default is OpenImagess
 
 
 def main():
@@ -38,27 +39,49 @@ def main():
     # setup model
     print('creating and loading the model...')
     state = torch.load(args.model_path, map_location='cpu')
-    args.num_classes = state['num_classes']
+    # args.num_classes = state['num_classes']
     args.do_bottleneck_head = False
     model = create_model(args).cuda()
-    model.load_state_dict(state['model'], strict=True)
+
+    try:
+        model.load_state_dict(state['model'], strict=True)
+    except:
+        model.load_state_dict(state, strict=True)
+
     model.eval()
-    classes_list = np.array(list(state['idx_to_class'].values()))
+
     print('done\n')
 
     # Data loading code
-    normalize = transforms.Normalize(mean=[0, 0, 0],
-                                     std=[1, 1, 1])
 
-    instances_path = os.path.join(args.data, 'annotations/instances_val2014.json')
-    data_path = os.path.join(args.data, 'val2014')
-    val_dataset = CocoDetection(data_path,
-                                instances_path,
-                                transforms.Compose([
-                                    transforms.Resize((args.image_size, args.image_size)),
-                                    transforms.ToTensor(),
-                                    normalize,
-                                ]))
+    # Convert class MID format to class description
+    if args.dataset_type.lower() == 'flixstock':
+
+        instances_path_val = os.path.join(args.data, 'attributes_val.csv')
+        data_path_val   = os.path.join(args.data, 'images_split', 'val', 'images')    # args.data
+
+        val_dataset = Flixstock(data_path_val,
+                                    instances_path_val,
+                                    transforms.Compose([
+                                        transforms.Resize((args.image_size, args.image_size)),
+                                        transforms.ToTensor(),
+                                        # normalize, # no need, toTensor does normalization
+                                    ]))   
+
+    else:
+
+        normalize = transforms.Normalize(mean=[0, 0, 0],
+                                        std=[1, 1, 1])
+
+        instances_path = os.path.join(args.data, 'annotations/instances_val2014.json')
+        data_path = os.path.join(args.data, 'val2014')
+        val_dataset = CocoDetection(data_path,
+                                    instances_path,
+                                    transforms.Compose([
+                                        transforms.Resize((args.image_size, args.image_size)),
+                                        transforms.ToTensor(),
+                                        normalize,
+                                    ]))
 
     print("len(val_dataset)): ", len(val_dataset))
     val_loader = torch.utils.data.DataLoader(
@@ -69,7 +92,7 @@ def main():
 
 
 def validate_multi(val_loader, model, args):
-    print("starting actuall validation")
+    print("starting actual validation")
     batch_time = AverageMeter()
     prec = AverageMeter()
     rec = AverageMeter()
@@ -83,7 +106,12 @@ def validate_multi(val_loader, model, args):
     targets = []
     for i, (input, target) in enumerate(val_loader):
         target = target
-        target = target.max(dim=1)[0]
+        
+        if args.dataset_type.lower() == 'flixstock':
+            target = target
+        else:
+            target = target.max(dim=1)[0]
+        
         # compute output
         with torch.no_grad():
             output = Sig(model(input.cuda())).cpu()
